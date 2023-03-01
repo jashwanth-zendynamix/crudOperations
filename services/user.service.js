@@ -22,17 +22,17 @@ class UserService {
     }
   }
 
-  async update(email, userData) {
+  async update(id, userData) {
     try {
-      return this.db.updateOne({ email: email }, userData);
+      return this.db.updateOne({ _id: id }, userData);
     } catch (err) {
       throw err;
     }
   }
 
-  async delete(email) {
+  async delete(id) {
     try {
-      return this.db.findOneAndDelete({ email: email });
+      return this.db.findOneAndDelete({ _id: id });
     } catch (err) {
       throw err;
     }

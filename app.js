@@ -1,5 +1,8 @@
-const express = require("express")
+const express = require("express");
+const path = require("path");
 const app = express();
-app.use(express.json());
+// const formidable = require("express-formidable");
 
-module.exports = {app,express}
+uploadDir = path.join(__dirname + "/uploads");
+app.use(express.json());
+module.exports = { app, express, uploadDir };

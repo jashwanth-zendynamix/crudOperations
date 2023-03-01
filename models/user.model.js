@@ -3,6 +3,7 @@ module.exports = function (mongoose) {
     name: String,
     email: String,
     password: String,
+    image: String,
   });
 
   const userModel = mongoose.model("User", userSchema);

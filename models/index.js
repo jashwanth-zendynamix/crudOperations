@@ -10,5 +10,6 @@ mongoose
   .then(() => console.log("connected to db"))
   .catch((err) => console.log(err));
 
+db.mongoose = mongoose;
 db.userModel = require("../models/user.model")(mongoose);
 module.exports = db;
