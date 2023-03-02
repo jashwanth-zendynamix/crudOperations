@@ -9,5 +9,6 @@ router.get("/findAll", userController.getAllUser);
 router.put("/update/:id", [validateId, uploadFile], userController.updateUser);
 router.post("/create", [uploadFile], userController.createUser);
 router.delete("/delete/:id", [validateId], userController.deleteUser);
+router.get("/image/:id", [validateId], userController.getImageById);
 
 module.exports = router;

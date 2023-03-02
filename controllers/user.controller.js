@@ -13,6 +13,21 @@ function createError(status, message) {
   return err;
 }
 
+async function getImageById(req, res) {
+  try {
+    const id = req.params.id;
+    const findRes = await userService.find({ _id: id });
+    if (findRes.length === 0) {
+      throw createError(404, `no image found with given id`);
+    }
+
+    const image = findRes[0]._doc.image;
+    sendResponse(res, 200, "data:image/jpeg;base64," + image);
+  } catch (err) {
+    sendResponse(res, err.status || 500, { message: err.message });
+  }
+}
+
 async function createUser(req, res) {
   try {
     const email = req.body.email;
@@ -24,7 +39,6 @@ async function createUser(req, res) {
     const createRes = await userService.create(req.body);
     sendResponse(res, 201, createRes._doc);
   } catch (err) {
-    deleteFile(req.files[0].filename);
     sendResponse(res, err.status || 500, { message: err.message });
   }
 }
@@ -37,7 +51,6 @@ async function deleteUser(req, res) {
       throw createError(404, `no user found with given id: ${id}`);
     }
 
-    deleteFile(findRes[0]._doc.image);
     userService.delete(id);
     sendResponse(res, 201, { message: "user delete successfully" });
   } catch (err) {
@@ -53,11 +66,9 @@ async function updateUser(req, res) {
       throw createError(404, `user with id: ${id} doesn't exists`);
     }
 
-    if (req.files.length > 0) deleteFile(findRes[0]._doc.image);
     const updateRes = await userService.update(id, req.body);
     sendResponse(res, 200, { message: "user updated successfully" });
   } catch (err) {
-    if (req.files) deleteFile(req.files[0].filename);
     sendResponse(res, err.status || 500, { message: err.message });
   }
 }
@@ -94,4 +105,5 @@ module.exports = {
   updateUser,
   findUserById,
   getAllUser,
+  getImageById,
 };

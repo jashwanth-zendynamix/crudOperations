@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const db = require("./models/index");
 const { app, uploadDir, express } = require("./app");
 
