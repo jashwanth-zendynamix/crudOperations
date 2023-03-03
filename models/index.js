@@ -12,4 +12,5 @@ mongoose
 
 db.mongoose = mongoose;
 db.userModel = require("../models/user.model")(mongoose);
+db.cacheModel = require("../models/cache.model")(mongoose);
 module.exports = db;

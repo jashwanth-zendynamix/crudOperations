@@ -1,5 +1,8 @@
 const userService = require("../services/user.service");
 const { deleteFile } = require("../services/file.service");
+const cacheService = require("../services/cache.service");
+const NodeCache = require("node-cache");
+const myCache = new NodeCache();
 
 function sendResponse(res, status, obj) {
   res.setHeader("content-type", "application/json");
@@ -16,13 +19,25 @@ function createError(status, message) {
 async function getImageById(req, res) {
   try {
     const id = req.params.id;
+    if (myCache.has(id)) {
+      const image = myCache.get(id).image;
+      const buffer = Buffer.from(image, "base64");
+      res.setHeader("Content-Type", "image/jpg");
+      res.writeHead(200);
+      res.end(buffer);
+      return;
+    }
+
     const findRes = await userService.find({ _id: id });
     if (findRes.length === 0) {
       throw createError(404, `no image found with given id`);
     }
 
     const image = findRes[0]._doc.image;
-    sendResponse(res, 200, "data:image/jpeg;base64," + image);
+    const buffer = Buffer.from(image, "base64");
+    res.setHeader("Content-Type", "image/jpg");
+    res.writeHead(200);
+    res.end(buffer);
   } catch (err) {
     sendResponse(res, err.status || 500, { message: err.message });
   }
@@ -51,7 +66,8 @@ async function deleteUser(req, res) {
       throw createError(404, `no user found with given id: ${id}`);
     }
 
-    userService.delete(id);
+    await userService.delete(id);
+    myCache.del(id);
     sendResponse(res, 201, { message: "user delete successfully" });
   } catch (err) {
     sendResponse(res, err.status || 500, { message: err.message });
@@ -66,7 +82,9 @@ async function updateUser(req, res) {
       throw createError(404, `user with id: ${id} doesn't exists`);
     }
 
-    const updateRes = await userService.update(id, req.body);
+    await userService.update(id, req.body);
+    const updateRes = await userService.find({ _id: id });
+    myCache.set(id, updateRes);
     sendResponse(res, 200, { message: "user updated successfully" });
   } catch (err) {
     sendResponse(res, err.status || 500, { message: err.message });
@@ -75,11 +93,20 @@ async function updateUser(req, res) {
 
 async function findUserById(req, res) {
   try {
-    const findRes = await userService.find({ _id: req.params.id });
-    if (findRes.length === 0) {
-      throw createError(404, `no user found with given id: ${req.params.id}`);
+    const id = req.params.id;
+    if (myCache.has(id)) {
+      sendResponse(res, 200, myCache.get(id));
+      return;
     }
 
+    const findRes = await userService.find({ _id: id });
+    if (findRes.length === 0) {
+      throw createError(404, `no user found with given id: ${id}`);
+    }
+
+    const doc = findRes[0]._doc;
+    // await cacheService.create({ _id: doc._id });
+    myCache.set(id, doc);
     sendResponse(res, 200, findRes);
   } catch (err) {
     sendResponse(res, err.status || 500, { message: err.message });
